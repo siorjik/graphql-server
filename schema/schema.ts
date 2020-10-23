@@ -120,8 +120,10 @@ const Mutation = new GraphQLObjectType({
       },
       resolve(parent: objType, args: IMovie) {
         const index = movies.findIndex(el => el.id === args.id);
+        const item = movies.find(el => el.id === args.id);
+
         index !== -1 && movies.splice(index, 1);
-        return movies.find(el => el.id === args.id);
+        return item;
       }
     }
   }
