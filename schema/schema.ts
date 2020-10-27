@@ -125,6 +125,25 @@ const Mutation = new GraphQLObjectType({
         index !== -1 && movies.splice(index, 1);
         return item;
       }
+    },
+
+    updateMovie: {
+      type: MovieType,
+      args: {
+        id: { type: GraphQLID },
+				name: { type: new GraphQLNonNull(GraphQLString) },
+				genre: { type: new GraphQLNonNull(GraphQLString) },
+				directorId: { type: GraphQLID },
+      },
+      resolve(parent: objType, { id, name, genre, directorId }: IMovie) {
+        const movie = movies.find(el => el.id === id);
+
+        movie!.name = name;
+        movie!.genre = genre;
+        movie!.directorId = directorId;
+
+        return movie;
+      }
     }
   }
 });
