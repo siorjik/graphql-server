@@ -2,7 +2,7 @@ const graphql = require('graphql');
 
 const { GraphQLObjectType, GraphQLString, GraphQLSchema, GraphQLID, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLBoolean } = graphql;
 
-type objType = { [key: string]: string | number }
+type ObjType = { [key: string]: string | number }
 
 interface IMovie {
   id: string;
@@ -38,7 +38,7 @@ const MovieType = new GraphQLObjectType({
     directorId: { type: GraphQLString },
     director: {
 			type: DirectorType,
-			resolve(parent: objType, args: any) {
+			resolve(parent: ObjType, args: ObjType) {
 				return directors.find(director => director.id === parent.directorId);
 			}
 		}
@@ -53,7 +53,7 @@ const DirectorType = new GraphQLObjectType({
     age: { type: GraphQLInt },
 		movies: {
 			type: new GraphQLList(MovieType),
-			resolve(parent: objType, args: any) {
+			resolve(parent: ObjType, args: ObjType) {
 				return movies.filter(movie => movie.directorId === parent.id);
 			},
 		},
@@ -66,22 +66,31 @@ const Query = new GraphQLObjectType({
     movie: {
       type: MovieType,
       args: { id: { type: GraphQLID } },
-      resolve(parent: objType, args: any) {
+      resolve(parent: ObjType, args: ObjType) {
         return movies.find(movie => movie.id === args.id);
       },
     },
 
     movies: {
       type: new GraphQLList(MovieType),
-      resolve() {
-        return movies;
+      args: { name: { type: GraphQLString } },
+      resolve(parent: ObjType, { name }: ObjType) {
+        if (name) {
+          const arr: IMovie[] = [];
+
+          movies.forEach(item => {
+            if (item.name.toLowerCase().includes((name as string).toLowerCase())) arr.push(item);
+          });
+
+          return arr;
+        } else return movies;
       },
     },
 
     director: {
       type: DirectorType,
       args: { id: { type: GraphQLID } },
-      resolve(parent: objType, args: any) {
+      resolve(parent: ObjType, args: ObjType) {
         console.log(args);
         return directors.find(director => director.id === args.id);
       },
@@ -89,7 +98,7 @@ const Query = new GraphQLObjectType({
 
     directors: {
 			type: new GraphQLList(DirectorType),
-			resolve(parent: objType, args: any) {
+			resolve(parent: ObjType, args: ObjType) {
 				return directors;
 			}
 		}
@@ -107,7 +116,7 @@ const Mutation = new GraphQLObjectType({
 				genre: { type: new GraphQLNonNull(GraphQLString) },
 				directorId: { type: GraphQLID },
       },
-      resolve(parent: objType, args: IMovie) {
+      resolve(parent: ObjType, args: IMovie) {
         movies.push({ ...args });
         return { ...args }
       }
@@ -118,7 +127,7 @@ const Mutation = new GraphQLObjectType({
       args: {
         id: { type: GraphQLID },
       },
-      resolve(parent: objType, args: IMovie) {
+      resolve(parent: ObjType, args: IMovie) {
         const index = movies.findIndex(el => el.id === args.id);
         const item = movies.find(el => el.id === args.id);
 
@@ -135,7 +144,7 @@ const Mutation = new GraphQLObjectType({
 				genre: { type: new GraphQLNonNull(GraphQLString) },
 				directorId: { type: GraphQLID },
       },
-      resolve(parent: objType, { id, name, genre, directorId }: IMovie) {
+      resolve(parent: ObjType, { id, name, genre, directorId }: IMovie) {
         const movie = movies.find(el => el.id === id);
 
         movie!.name = name;
